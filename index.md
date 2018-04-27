@@ -1,5 +1,5 @@
 ---
-layout: default 
+layout: home 
 ---
 
 ld**, _italic_, or ~~strikethrough~~.
