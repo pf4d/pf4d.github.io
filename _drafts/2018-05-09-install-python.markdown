@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Build FEniCS 2017.2.0 from source with OpenBLAS on Ubuntu 18.04 LTS"
+title:  "Build FEniCS 2017.2.0 from source with OpenBLAS"
 date:   2018-05-09 
 author: Evan Cummings
 categories: jekyll update
@@ -129,7 +129,8 @@ The function ``load_environment()`` can be called after all the software is inst
 We install source code into `$SFT_DIR` and Python will go into `$PYHON_DIR`.
 
 If you have access to `sudo`, install all the Python dependencies the easy way.
-Make sure to check the box *Source code* in your software data sources: press ``win`` key (we don't support planned-obsolecent and overpriced computers here), then type "software & updates":
+Make sure to check the box *Source code* in your software data sources: press ``win`` key (we don't support planned-obsolescent policies), then type "software & updates".
+Then the command ``apt-get build-dep`` will work:
 
 {% highlight bash %}
 function install_dependencies()
@@ -179,12 +180,12 @@ function install_openblas()
   tar -xf openblas.tar.bz;
   rm openblas.tar.bz;
   cd OpenBLAS-${OPENBLAS_VERSION};
-  make -j1 USE_THREAD=0 \
-           NUM_THREADS=1 \
-           NO_PARALLEL_MAKE=1 \
-           CC=gcc \
-           FC=gfortran \
-           PREFIX=${OPENBLAS_DIR};
+  make -j ${BUILD_TREADS} \
+        USE_THREAD=0 \
+        NUM_THREADS=1 \
+        CC=gcc \
+        FC=gfortran \
+        PREFIX=${OPENBLAS_DIR};
   make install PREFIX=${OPENBLAS_DIR};
 }
 {% endhighlight %}
@@ -196,7 +197,10 @@ function install_python()
 {
   # install python :
   cd $SFT_DIR;
-  wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz;
+  url="https://www.python.org/ftp/python/${PYTHON_VERSION}/\
+       Python-${PYTHON_VERSION}.tgz";
+  url=$(tr -d ' ' <<< "$url");   # remove spaces to fit the url within 80 chr
+  wget $url;
   tar -xzf Python-${PYTHON_VERSION}.tgz;
   rm Python-${PYTHON_VERSION}.tgz;
   cd $SFT_DIR/Python-${PYTHON_VERSION};
@@ -272,7 +276,10 @@ function install_cmake()
 {
   # install cmake :
   cd $SFT_DIR;
-  wget https://cmake.org/files/v${CMAKE_VERSION%.*}/cmake-${CMAKE_VERSION}.tar.gz;
+  url="https://cmake.org/files/v${CMAKE_VERSION%.*}/\
+       cmake-${CMAKE_VERSION}.tar.gz";
+  url=$(tr -d ' ' <<< "$url");   # remove spaces to fit the url within 80 chr
+  wget $url;
   tar -xzf cmake-${CMAKE_VERSION}.tar.gz;
   rm cmake-${CMAKE_VERSION}.tar.gz;
   cd $SFT_DIR/cmake-${CMAKE_VERSION};
@@ -291,7 +298,8 @@ function install_pybind11()
 {
   # install pybind11 :
   cd $SFT_DIR;
-  wget -nc https://github.com/pybind/pybind11/archive/v${PYBIND11_VERSION}.tar.gz -O pybind.tgz;
+  url="https://github.com/pybind/pybind11/archive/v${PYBIND11_VERSION}.tar.gz";
+  wget -nc $url -O pybind.tgz;
   tar -xzf pybind.tgz;
   rm pybind.tgz;
   mkdir pybind11-${PYBIND11_VERSION}/build;
@@ -311,7 +319,10 @@ function install_boost()
   # install boost (with mpi) :
   cd $SFT_DIR;
   boost_ver=$(tr "\." "_" <<< ${BOOST_VERSION});
-  wget https://dl.bintray.com/boostorg/release/${BOOST_VERSION}/source/boost_${boost_ver}.tar.gz;
+  url="https://dl.bintray.com/boostorg/release/${BOOST_VERSION}/\
+       source/boost_${boost_ver}.tar.gz";
+  url=$(tr -d ' ' <<< "$url");   # remove spaces to fit the url within 80 chr
+  wget $url;
   mkdir -p boost-${BOOST_VERSION};
   tar -xzf boost_${boost_ver}.tar.gz -C boost-${BOOST_VERSION} \
             --strip-components 1;
@@ -353,7 +364,8 @@ function install_swig()
 { 
   # install swig :
   cd $SFT_DIR;
-  wget -nc http://downloads.sourceforge.net/swig/swig-${SWIG_VERSION}.tar.gz -O swig-${SWIG_VERSION}.tar.gz;
+  url="http://downloads.sourceforge.net/swig/swig-${SWIG_VERSION}.tar.gz";
+  wget -nc $url -O swig-${SWIG_VERSION}.tar.gz;
   tar -xf swig-${SWIG_VERSION}.tar.gz;
   rm swig-${SWIG_VERSION}.tar.gz;
   cd $SFT_DIR/swig-${SWIG_VERSION};
@@ -372,7 +384,11 @@ function install_hdf5()
 {
   # install hdf5 :
   cd $SFT_DIR;
-  wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz;
+  url="https://support.hdfgroup.org/ftp/HDF5/releases/\
+       hdf5-${HDF5_VERSION%.*}/hdf5-${HDF5_VERSION}/\
+       src/hdf5-${HDF5_VERSION}.tar.gz";
+  url=$(tr -d ' ' <<< "$url");   # remove spaces to fit the url within 80 chr
+  wget $url;
   tar -xzf hdf5-${HDF5_VERSION}.tar.gz;
   rm hdf5-${HDF5_VERSION}.tar.gz;
   rm -rf $SFT_DIR/hdf5-${HDF5_VERSION}/build;
@@ -445,9 +461,12 @@ function install_petsc()
   export PETSC_DIR=${PREFIX}/petsc-${PETSC_VERSION};
   make PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" test;
   
-  # install petsc4py (https://www.mcs.anl.gov/petsc/petsc4py-current/docs/usrman/install.html) :
+  # install petsc4py 
+  # https://www.mcs.anl.gov/petsc/petsc4py-current/docs/usrman/install.html :
   cd $SFT_DIR;
-  wget https://bitbucket.org/petsc/petsc4py/downloads/petsc4py-${PETSC4PY_VERSION}.tar.gz;
+  url="https://bitbucket.org/petsc/petsc4py/downloads/\
+       petsc4py-${PETSC4PY_VERSION}.tar.gz";
+  wget $url;
   tar -xzvf petsc4py-${PETSC4PY_VERSION}.tar.gz;
   rm petsc4py-${PETSC4PY_VERSION}.tar.gz;
   cd $SFT_DIR/petsc4py-${PETSC4PY_VERSION};
@@ -477,9 +496,12 @@ function install_slepc()
   export SLEPC_DIR=${PREFIX}/slepc-${SLEPC_VERSION};
   make SLEPC_DIR=${SLEPC_DIR} PETSC_DIR=${PETSC_DIR} PETSC_ARCH="" test;
 
-  # install slepc4py (http://slepc.upv.es/slepc4py-current/docs/usrman/install.html) :
+  # install slepc4py 
+  # http://slepc.upv.es/slepc4py-current/docs/usrman/install.html :
   cd $SFT_DIR;
-  wget https://bitbucket.org/slepc/slepc4py/downloads/slepc4py-${SLEPC4PY_VERSION}.tar.gz;
+  url="https://bitbucket.org/slepc/slepc4py/\
+       downloads/slepc4py-${SLEPC4PY_VERSION}.tar.gz";
+  wget $url;
   tar -xzvf slepc4py-${SLEPC4PY_VERSION}.tar.gz;
   rm slepc4py-${SLEPC4PY_VERSION}.tar.gz;
   cd $SFT_DIR/slepc4py-${SLEPC4PY_VERSION};
@@ -572,8 +594,9 @@ function install_ipopt()
   # first, build ipopt :
   # NOTE: remember to copy hsl to $PREFIX/hsl :
   cd $SFT_DIR;
-  wget -nc https://www.coin-or.org/download/source/Ipopt/Ipopt-${IPOPT_VERSION}.tgz \
-       -O $SFT_DIR/ipopt-${IPOPT_VERSION}.tgz;
+  url="https://www.coin-or.org/download/source/Ipopt/\
+       Ipopt-${IPOPT_VERSION}.tgz";
+  wget -nc $url -O $SFT_DIR/ipopt-${IPOPT_VERSION}.tgz;
   mkdir -p $SFT_DIR/ipopt-${IPOPT_VERSION};
   tar -xvf $SFT_DIR/ipopt-${IPOPT_VERSION}.tgz \
              -C $SFT_DIR/ipopt-${IPOPT_VERSION} \
@@ -606,10 +629,22 @@ function install_ipopt()
   cd $SFT_DIR;
   git clone git@github.com:pf4d/pyipopt.git;
   cd $SFT_DIR/pyipopt;
-  git checkout openblas;
-  sed -i "s/coinmumps/dmumps/g" setup.py
-  sed -i "s#library_dirs=\[IPOPT_LIB\]#library_dirs=[IPOPT_LIB, '${PETSC_DIR}/lib', '${HSL_DIR}/lib', '${OPENBLAS_DIR}/lib']#g" setup.py
-  sed -i "s#include_dirs=\[numpy_include, IPOPT_INC\]#include_dirs=[numpy_include, IPOPT_INC, '${PETSC_DIR}/include', '${HSL_DIR}/include', '${OPENBLAS_DIR}/include']#g" setup.py
+  git checkout openblas;   # I created this just for you.
+
+  # add the additional include directories for our installation :
+  sed -i "s/coinmumps/dmumps/g" setup.py;
+  sed -i "s/library_dirs=[IPOPT_LIB]\
+           /library_dirs=[IPOPT_LIB,\
+                          '${PETSC_DIR}/lib',\
+                          '${HSL_DIR}/lib',\
+                          '${OPENBLAS_DIR}/lib']/g" \
+         setup.py;
+  sed -i "s/include_dirs=[numpy_include, IPOPT_INC]\
+           /include_dirs=[numpy_include, IPOPT_INC,\
+                          '${PETSC_DIR}/include',\
+                          '${HSL_DIR}/include',\
+                          '${OPENBLAS_DIR}/include']/g" \
+         setup.py;
   pip uninstall -y pyipopt;
   rm -rf build;
   python setup.py build;
