@@ -8,7 +8,7 @@ categories: jekyll update
 
 If you are working with a cluster system, or simply want to take advantage of [OpenBLAS][openblas] linear-algebra libraries that are tuned for your particular computer architecture, you'll have to build some machine code from source.
 The [FEniCS][fenics] devs are currently working on the latest 2018.1.0 version which will finally no longer support Python 2.7 and also take advantage of the lastest [PETSc][petsc] version.
-Until this latest version is released, it is required to install some older software version of [FEniCS][fenics] software dependencies; it is my hope that this letter may provide a solid platform from which users may take advantage of to get any past or future software depending on [FEniCS][fenics] version 2017.2.0 up and running.
+Until this latest version is released, it is required to install some older software versions of the [FEniCS][fenics] dependencies; it is my hope that this letter will provide a demonstration for users to follow in order to get any past or future software which depends on [FEniCS][fenics] version 2017.2.0 up and running.
 
 The steps to follow will build all the dependencies for my glacier simulator [cslvr][cslvr] which uses [FEniCS][fenics], and will be completed by calling the following function, which calls installation scripts for each of the dependencies to be described below:
 
