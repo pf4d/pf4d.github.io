@@ -131,6 +131,7 @@ function load_environment()
 
   # make the directory to store the source code :
   mkdir -p $SFT_DIR;
+  mkdir -p $PREFIX;
 }
 {% endhighlight %}
 
@@ -146,7 +147,7 @@ Then the command ``apt-get build-dep`` will work:
 function install_dependencies()
 {
   # ensure a fortran compiler is available :
-  sudo apt-get install -y gfortran;
+  sudo apt-get install -y gfortran libgfortran3;
   
   # install python dependencies (make sure to check box `Source code` sources) :
   sudo apt-get install -y git build-essential libmpich-dev;
@@ -186,9 +187,9 @@ function install_openblas()
   cd $SFT_DIR;
   wget --read-timeout=10 \
     -nc https://github.com/xianyi/OpenBLAS/archive/v${OPENBLAS_VERSION}.tar.gz \
-    -O openblas.tar.bz;
-  tar -xf openblas.tar.bz;
-  rm openblas.tar.bz;
+    -O openblas.tar.gz;
+  tar -xf openblas.tar.gz;
+  rm openblas.tar.gz;
   cd OpenBLAS-${OPENBLAS_VERSION};
   make -j ${BUILD_TREADS} \
         USE_THREAD=0 \
@@ -497,6 +498,7 @@ function install_petsc()
   cd $SFT_DIR;
   url="https://bitbucket.org/petsc/petsc4py/downloads/\
        petsc4py-${PETSC4PY_VERSION}.tar.gz";
+  url=$(tr -d ' ' <<< "$url");   # remove spaces to fit the url within 80 chr
   wget $url;
   tar -xzvf petsc4py-${PETSC4PY_VERSION}.tar.gz;
   rm petsc4py-${PETSC4PY_VERSION}.tar.gz;
@@ -532,6 +534,7 @@ function install_slepc()
   cd $SFT_DIR;
   url="https://bitbucket.org/slepc/slepc4py/\
        downloads/slepc4py-${SLEPC4PY_VERSION}.tar.gz";
+  url=$(tr -d ' ' <<< "$url");   # remove spaces to fit the url within 80 chr
   wget $url;
   tar -xzvf slepc4py-${SLEPC4PY_VERSION}.tar.gz;
   rm slepc4py-${SLEPC4PY_VERSION}.tar.gz;
@@ -627,6 +630,7 @@ function install_ipopt()
   cd $SFT_DIR;
   url="https://www.coin-or.org/download/source/Ipopt/\
        Ipopt-${IPOPT_VERSION}.tgz";
+  url=$(tr -d ' ' <<< "$url");   # remove spaces to fit the url within 80 chr
   wget -nc $url -O $SFT_DIR/ipopt-${IPOPT_VERSION}.tgz;
   mkdir -p $SFT_DIR/ipopt-${IPOPT_VERSION};
   tar -xvf $SFT_DIR/ipopt-${IPOPT_VERSION}.tgz \
@@ -663,21 +667,8 @@ function install_ipopt()
   git checkout openblas;   # I created this just for you.
 
   # add the additional include directories for our installation :
-  sed -i "s/coinmumps/dmumps/g" setup.py;
-  sed -i "s/library_dirs=[IPOPT_LIB]\
-           /library_dirs=[IPOPT_LIB,\
-                          '${PETSC_DIR}/lib',\
-                          '${HSL_DIR}/lib',\
-                          '${OPENBLAS_DIR}/lib']/g" \
-         setup.py;
-  sed -i "s/include_dirs=[numpy_include, IPOPT_INC]\
-           /include_dirs=[numpy_include, IPOPT_INC,\
-                          '${PETSC_DIR}/include',\
-                          '${HSL_DIR}/include',\
-                          '${OPENBLAS_DIR}/include']/g" \
-         setup.py;
-  pip uninstall -y pyipopt;
-  rm -rf build;
+  sed -i "s#library_dirs=\[IPOPT_LIB\]#library_dirs=[IPOPT_LIB, '${PETSC_DIR}/lib', '${HSL_DIR}/lib', '${OPENBLAS_DIR}/lib']#g" setup.py;
+  sed -i "s#include_dirs=\[numpy_include, IPOPT_INC\]#include_dirs=[numpy_include, IPOPT_INC, '${PETSC_DIR}/include', '${HSL_DIR}/include', '${OPENBLAS_DIR}/include']#g" setup.py;
   python setup.py build;
   pip install . -v;
 }
